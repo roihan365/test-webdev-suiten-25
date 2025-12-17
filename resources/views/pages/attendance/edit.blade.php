@@ -31,6 +31,55 @@
                 @csrf
                 @method('PUT')
 
+                <!-- Error Messages -->
+                @if ($errors->any())
+                    <div
+                        class="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                                    Terdapat {{ $errors->count() }} kesalahan yang harus diperbaiki
+                                </h3>
+                                <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+                                    <ul class="list-disc pl-5 space-y-1">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Success Message -->
+                @if (session('success'))
+                    <div
+                        class="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                                    {{ session('success') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="space-y-6">
                     <!-- Pegawai Info -->
                     <div class="border-b border-gray-200 dark:border-gray-700 pb-6">
@@ -65,7 +114,11 @@
                         </label>
                         <input type="date" id="tanggal" name="tanggal"
                             value="{{ old('tanggal', $absensi->tanggal->format('Y-m-d')) }}" required
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            max="{{ date('Y-m-d') }}" min="{{ date('Y-m-d', strtotime('-1 year')) }}"
+                            class="w-full px-3 py-2 border {{ $errors->has('tanggal') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600' }} rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        @error('tanggal')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Status -->
@@ -74,7 +127,7 @@
                             Status *
                         </label>
                         <select id="status" name="status" required onchange="toggleTimeInputs()"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="w-full px-3 py-2 border {{ $errors->has('status') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600' }} rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="hadir" {{ old('status', $absensi->status) == 'hadir' ? 'selected' : '' }}>
                                 Hadir</option>
                             <option value="izin" {{ old('status', $absensi->status) == 'izin' ? 'selected' : '' }}>
@@ -86,6 +139,9 @@
                             <option value="alpha" {{ old('status', $absensi->status) == 'alpha' ? 'selected' : '' }}>
                                 Alpha</option>
                         </select>
+                        @error('status')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Time Inputs -->
@@ -97,8 +153,11 @@
                             </label>
                             <input type="time" id="jam_masuk" name="jam_masuk"
                                 value="{{ old('jam_masuk', $absensi->jam_masuk) }}"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                class="w-full px-3 py-2 border {{ $errors->has('jam_masuk') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600' }} rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 onchange="calculateOvertime()">
+                            @error('jam_masuk')
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
@@ -108,8 +167,11 @@
                             </label>
                             <input type="time" id="jam_pulang" name="jam_pulang"
                                 value="{{ old('jam_pulang', $absensi->jam_pulang) }}"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                class="w-full px-3 py-2 border {{ $errors->has('jam_pulang') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600' }} rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 onchange="calculateOvertime()">
+                            @error('jam_pulang')
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
@@ -172,14 +234,62 @@
 
                     <!-- Notes -->
                     <div>
-                        <label for="keterangan" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label for="keterangan"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Catatan
                         </label>
                         <textarea id="keterangan" name="keterangan" rows="3"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{{ old('keterangan', $absensi->keterangan) }}</textarea>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            Maksimal 500 karakter.
-                        </p>
+                            class="w-full px-3 py-2 border {{ $errors->has('keterangan') ? 'border-red-500' : 'border-gray-300 dark:border-gray-600' }} rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{{ old('keterangan', $absensi->keterangan) }}</textarea>
+                        <div class="flex justify-between mt-1">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Maksimal 500 karakter.
+                            </p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400" id="charCount">
+                                {{ strlen(old('keterangan', $absensi->keterangan)) }}/500
+                            </p>
+                        </div>
+                        @error('keterangan')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Current Data Info -->
+                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Saat Ini</h4>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="text-gray-600 dark:text-gray-400">Tanggal:</span>
+                                <span
+                                    class="ml-2 font-medium text-gray-900 dark:text-white">{{ $absensi->tanggal->translatedFormat('d F Y') }}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-600 dark:text-gray-400">Status:</span>
+                                <span
+                                    class="ml-2 font-medium {{ $absensi->status == 'hadir'
+                                        ? 'text-green-600 dark:text-green-400'
+                                        : ($absensi->status == 'izin'
+                                            ? 'text-yellow-600 dark:text-yellow-400'
+                                            : ($absensi->status == 'cuti'
+                                                ? 'text-blue-600 dark:text-blue-400'
+                                                : ($absensi->status == 'sakit'
+                                                    ? 'text-orange-600 dark:text-orange-400'
+                                                    : 'text-red-600 dark:text-red-400'))) }}">
+                                    {{ ucfirst($absensi->status) }}
+                                </span>
+                            </div>
+                            @if ($absensi->jam_masuk && $absensi->jam_pulang)
+                                <div>
+                                    <span class="text-gray-600 dark:text-gray-400">Jam Masuk:</span>
+                                    <span
+                                        class="ml-2 font-medium text-gray-900 dark:text-white">{{ \Carbon\Carbon::parse($absensi->jam_masuk)->format('H:i') }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600 dark:text-gray-400">Jam Pulang:</span>
+                                    <span
+                                        class="ml-2 font-medium text-gray-900 dark:text-white">{{ \Carbon\Carbon::parse($absensi->jam_pulang)->format('H:i') }}</span>
+                                </div>
+                            @endif
+                        </div>
                     </div>
 
                     <!-- Form Actions -->
@@ -206,17 +316,28 @@
             const jamPulangInput = document.getElementById('jam_pulang');
             const overtimeContainer = document.getElementById('overtimeContainer');
             const overtimeResult = document.getElementById('overtimeResult');
+            const keteranganInput = document.getElementById('keterangan');
+            const charCount = document.getElementById('charCount');
 
             function toggleTimeInputs() {
                 if (statusSelect.value === 'hadir') {
                     jamMasukInput.disabled = false;
+                    jamMasukInput.required = true;
                     jamPulangInput.disabled = false;
+                    jamPulangInput.required = true;
                     overtimeContainer.classList.remove('hidden');
+
+                    // Set default values if empty
+                    if (!jamMasukInput.value) jamMasukInput.value = '08:00';
+                    if (!jamPulangInput.value) jamPulangInput.value = '17:00';
+
                     calculateOvertime();
                 } else {
                     jamMasukInput.disabled = true;
-                    jamPulangInput.disabled = true;
+                    jamMasukInput.required = false;
                     jamMasukInput.value = '';
+                    jamPulangInput.disabled = true;
+                    jamPulangInput.required = false;
                     jamPulangInput.value = '';
                     overtimeContainer.classList.add('hidden');
                     overtimeResult.textContent = 'Masukkan jam masuk dan jam pulang untuk menghitung lembur';
@@ -291,9 +412,15 @@
 
                     // Validasi jam masuk dan jam pulang
                     if (jamMasuk && jamPulang) {
-                        if (jamPulang <= jamMasuk) {
+                        const jamMasukTime = new Date(`2000-01-01T${jamMasuk}`);
+                        const jamPulangTime = new Date(`2000-01-01T${jamPulang}`);
+
+                        if (jamPulangTime <= jamMasukTime) {
                             overtimeResult.innerHTML +=
                                 '<br><span class="text-red-600 dark:text-red-400 text-sm">⚠️ Jam pulang harus lebih besar dari jam masuk</span>';
+                            jamPulangInput.classList.add('border-red-500');
+                        } else {
+                            jamPulangInput.classList.remove('border-red-500');
                         }
                     }
                 } else {
@@ -301,28 +428,98 @@
                 }
             }
 
-            // Initial setup
-            toggleTimeInputs();
+            // Character counter for keterangan
+            function updateCharCount() {
+                const length = keteranganInput.value.length;
+                charCount.textContent = `${length}/500`;
+
+                if (length > 500) {
+                    charCount.classList.add('text-red-600', 'dark:text-red-400');
+                    keteranganInput.classList.add('border-red-500');
+                } else {
+                    charCount.classList.remove('text-red-600', 'dark:text-red-400');
+                    keteranganInput.classList.remove('border-red-500');
+                }
+            }
+
+            // Limit karakter untuk keterangan
+            function limitCharCount() {
+                if (keteranganInput.value.length > 500) {
+                    keteranganInput.value = keteranganInput.value.substring(0, 500);
+                    updateCharCount();
+                }
+            }
 
             // Form validation
             document.getElementById('editAbsensiForm').addEventListener('submit', function(e) {
                 const status = statusSelect.value;
                 const jamMasuk = jamMasukInput.value;
                 const jamPulang = jamPulangInput.value;
+                const keterangan = keteranganInput.value;
+
+                // Reset error classes
+                document.querySelectorAll('.border-red-500').forEach(el => {
+                    el.classList.remove('border-red-500');
+                });
+
+                let hasError = false;
 
                 if (status === 'hadir') {
-                    if (!jamMasuk || !jamPulang) {
-                        e.preventDefault();
-                        alert('Jam masuk dan jam pulang harus diisi untuk status Hadir.');
-                        return false;
+                    if (!jamMasuk) {
+                        jamMasukInput.classList.add('border-red-500');
+                        hasError = true;
                     }
 
-                    if (jamPulang <= jamMasuk) {
-                        e.preventDefault();
-                        alert('Jam pulang harus lebih besar dari jam masuk.');
-                        return false;
+                    if (!jamPulang) {
+                        jamPulangInput.classList.add('border-red-500');
+                        hasError = true;
+                    }
+
+                    if (jamMasuk && jamPulang) {
+                        const jamMasukTime = new Date(`2000-01-01T${jamMasuk}`);
+                        const jamPulangTime = new Date(`2000-01-01T${jamPulang}`);
+
+                        if (jamPulangTime <= jamMasukTime) {
+                            jamPulangInput.classList.add('border-red-500');
+                            hasError = true;
+                            alert('Jam pulang harus lebih besar dari jam masuk.');
+                        }
                     }
                 }
+
+                if (keterangan.length > 500) {
+                    keteranganInput.classList.add('border-red-500');
+                    hasError = true;
+                    alert('Keterangan maksimal 500 karakter.');
+                }
+
+                if (hasError) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                return true;
+            });
+
+            // Initial setup
+            document.addEventListener('DOMContentLoaded', function() {
+                toggleTimeInputs();
+                updateCharCount();
+
+                // Add event listeners
+                keteranganInput.addEventListener('input', function() {
+                    updateCharCount();
+                    limitCharCount();
+                });
+
+                // Set max date for tanggal input
+                const today = new Date().toISOString().split('T')[0];
+                const oneYearAgo = new Date();
+                oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                const oneYearAgoStr = oneYearAgo.toISOString().split('T')[0];
+
+                document.getElementById('tanggal').setAttribute('max', today);
+                document.getElementById('tanggal').setAttribute('min', oneYearAgoStr);
             });
         </script>
     @endpush

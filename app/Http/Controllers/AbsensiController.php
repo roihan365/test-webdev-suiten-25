@@ -117,6 +117,13 @@ class AbsensiController extends Controller
     {
         $tanggal = $request->input('tanggal');
 
+        // Validasi tanggal tidak di masa depan
+        if (strtotime($tanggal) > strtotime(date('Y-m-d'))) {
+            return redirect()->back()
+                ->with('error', 'Tanggal absensi tidak boleh di masa depan.')
+                ->withInput();
+        }
+
         // Check if attendance already exists for this date
         $existingAbsensi = Attendance::whereDate('tanggal', $tanggal)->exists();
 
@@ -138,6 +145,13 @@ class AbsensiController extends Controller
         $jamMasuks = $request->input('jam_masuk', []);
         $jamPulangs = $request->input('jam_pulang', []);
 
+        // Validasi minimal satu pegawai dipilih
+        if (empty($pegawaiIds)) {
+            return redirect()->back()
+                ->with('error', 'Pilih minimal satu pegawai untuk diinput absensinya.')
+                ->withInput();
+        }
+
         $absensiData = [];
 
         foreach ($pegawaiIds as $index => $pegawaiId) {
@@ -145,8 +159,22 @@ class AbsensiController extends Controller
                 $hariKerja = 0;
                 $jamLembur = 0.00;
 
-                // Hitung lembur jika status hadir dan ada jam pulang
-                if ($statuses[$index] === 'hadir' && isset($jamPulangs[$index]) && $jamPulangs[$index]) {
+                // Validasi untuk status hadir
+                if ($statuses[$index] === 'hadir') {
+                    if (empty($jamMasuks[$index]) || empty($jamPulangs[$index])) {
+                        return redirect()->back()
+                            ->with('error', "Jam masuk dan jam pulang harus diisi untuk status Hadir (Pegawai #{$pegawaiId}).")
+                            ->withInput();
+                    }
+
+                    // Validasi jam pulang > jam masuk
+                    if ($jamPulangs[$index] <= $jamMasuks[$index]) {
+                        return redirect()->back()
+                            ->with('error', "Jam pulang harus lebih besar dari jam masuk (Pegawai #{$pegawaiId}).")
+                            ->withInput();
+                    }
+
+                    // Hitung lembur jika status hadir dan ada jam pulang
                     $jamPulang = \Carbon\Carbon::parse($jamPulangs[$index]);
                     $jamPulangHour = $jamPulang->hour;
                     $jamPulangMinute = $jamPulang->minute;
@@ -191,6 +219,13 @@ class AbsensiController extends Controller
                     }
                 }
 
+                // Validasi keterangan maksimal 500 karakter
+                if (isset($keterangans[$index]) && strlen($keterangans[$index]) > 500) {
+                    return redirect()->back()
+                        ->with('error', "Keterangan maksimal 500 karakter (Pegawai #{$pegawaiId}).")
+                        ->withInput();
+                }
+
                 $absensiData[] = [
                     'pegawai_id' => $pegawaiId,
                     'tanggal' => $tanggal,
@@ -208,7 +243,7 @@ class AbsensiController extends Controller
 
         // Insert in batch
         if (!empty($absensiData)) {
-            Attendance::insert($absensiData);
+            Section::insert($absensiData);
         }
 
         // Create attendance records for absent employees (alpha)
