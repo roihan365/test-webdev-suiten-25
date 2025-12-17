@@ -307,7 +307,9 @@
                                             {{ $absensi->total_hadir }} hari
                                         </div>
                                         <div class="text-xs text-gray-500 dark:text-gray-400">
-                                            {{ round(($absensi->total_hadir / $absensi->pegawai->total_hari_kerja) * 100) }}%
+                                            {{ $absensi->pegawai->total_hari_kerja > 0
+                                                ? round(($absensi->total_hadir / $absensi->pegawai->total_hari_kerja) * 100)
+                                                : 0 }}%
                                         </div>
                                     </div>
                                 </div>
