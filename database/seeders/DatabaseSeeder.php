@@ -22,5 +22,11 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@gmail.com',
             'password' => bcrypt("password"),
         ]);
+
+        $this->call([
+            BagianSeeder::class,
+            PegawaiSeeder::class,
+            AbsensiSeeder::class,
+        ]);
     }
 }
